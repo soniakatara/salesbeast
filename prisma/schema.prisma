@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  passwordHash String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  playbooks    Playbook[]
+  sessions     Session[]
+  feedbacks    Feedback[]
+}
+
+model Playbook {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ScenarioPreset {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  phases      String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model Session {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type           String
+  scenarioId     String?
+  scenarioTitle  String?
+  phase          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  messages       Message[]
+  feedback       Feedback?
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Feedback {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId       String   @unique
+  session         Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  scores          String
+  summary         String
+  actions         String
+  practiceNext    String
+  weaknesses      String?
+  strengths       String?
+  suggestedRewrite String?
+  drill           String?
+  primaryLeak     String?
+  secondaryLeak   String?
+  leakExplanation String?
+  leakEvidence    String?
+  createdAt       DateTime @default(now())
+}
