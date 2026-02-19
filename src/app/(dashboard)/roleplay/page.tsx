@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/Card";
@@ -33,9 +33,8 @@ type Session = {
   createdAt: string;
   updatedAt: string;
 };
-export const dynamic = "force-dynamic";
 
-export default function RoleplayPage() {
+function RoleplayContent() {
   const searchParams = useSearchParams();
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [scenariosLoading, setScenariosLoading] = useState(true);
@@ -451,5 +450,13 @@ export default function RoleplayPage() {
         {starting ? "Starting…" : "Start roleplay"}
       </Button>
     </div>
+  );
+}
+
+export default function RoleplayPage() {
+  return (
+    <Suspense fallback={<div className="text-neutral-400 p-4">Loading…</div>}>
+      <RoleplayContent />
+    </Suspense>
   );
 }
