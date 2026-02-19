@@ -324,8 +324,8 @@ export default function RoleplayPage() {
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 ? (
               <p className="text-neutral-500 text-sm">
-                Start the conversation. You're the seller; the coach plays the
-                prospect.
+               Start the conversation. You&apos;re the seller; the coach plays the prospect.
+
               </p>
             ) : (
               messages.map((m) => (
@@ -380,8 +380,8 @@ export default function RoleplayPage() {
         </Link>
       </div>
       <p className="text-neutral-400">
-        Pick a scenario or describe your own. You'll play the seller; the coach
-        plays the prospect.
+      You&apos;ll play the seller; the coach
+
       </p>
 
       {error && (
