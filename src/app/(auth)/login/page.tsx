@@ -1,3 +1,9 @@
+export const dynamic = "force-dynamic";
+
+
+import { Suspense } from "react";
+
+
 "use client";
 
 import { useState } from "react";

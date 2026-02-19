@@ -33,6 +33,7 @@ type Session = {
   createdAt: string;
   updatedAt: string;
 };
+export const dynamic = "force-dynamic";
 
 export default function RoleplayPage() {
   const searchParams = useSearchParams();
