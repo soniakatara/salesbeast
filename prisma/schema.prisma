@@ -8,15 +8,25 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String       @id @default(cuid())
+  email        String       @unique
   name         String?
   passwordHash String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   playbooks    Playbook[]
   sessions     Session[]
   feedbacks    Feedback[]
+  noteChunks   NoteChunk[]
+}
+
+model NoteChunk {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceTitle String
+  content     String
+  createdAt   DateTime @default(now())
 }
 
 model Playbook {

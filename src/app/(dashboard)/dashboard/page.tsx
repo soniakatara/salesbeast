@@ -20,6 +20,16 @@ const navItems = [
     description: "Manage scripts and objection library",
   },
   {
+    href: "/notes",
+    title: "My notes",
+    description: "Paste and ingest sales notes for Q&A",
+  },
+  {
+    href: "/ask",
+    title: "Ask",
+    description: "Ask questions using your ingested notes",
+  },
+  {
     href: "/history",
     title: "History",
     description: "Past sessions and conversation detail",

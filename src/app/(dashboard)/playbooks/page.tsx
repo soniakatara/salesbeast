@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Section } from "@/components/ui/Section";
+import { parseBulkPlaybooks, type ParsedPlaybook } from "@/lib/playbook-import";
 
 const PLAYBOOK_TYPE_OPTIONS: { value: string; label: string }[] = [
   { value: "opening_hooks", label: "Opening hooks" },
@@ -53,6 +54,10 @@ export default function PlaybooksPage() {
   const [editContent, setEditContent] = useState("");
   const [editType, setEditType] = useState("opening_hooks");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [bulkText, setBulkText] = useState("");
+  const [previewItems, setPreviewItems] = useState<ParsedPlaybook[] | null>(null);
+  const [bulkType, setBulkType] = useState("opening_hooks");
+  const [bulkImporting, setBulkImporting] = useState(false);
 
   const filteredPlaybooks =
     typeFilter === "all"
@@ -166,6 +171,52 @@ export default function PlaybooksPage() {
     }
   }
 
+  function handleBulkPreview() {
+    setError("");
+    const items = parseBulkPlaybooks(bulkText);
+    if (items.length === 0) {
+      setError("No playbooks found. Use headings like # Title with content below.");
+      return;
+    }
+    setPreviewItems(items);
+  }
+
+  function handleBulkCancel() {
+    setPreviewItems(null);
+    setBulkText("");
+  }
+
+  async function handleBulkConfirm() {
+    if (!previewItems?.length) return;
+    setBulkImporting(true);
+    setError("");
+    try {
+      for (const item of previewItems) {
+        const res = await fetch("/api/playbooks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: item.title,
+            content: item.content,
+            type: bulkType,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setError(data.error ?? `Failed to create "${item.title}".`);
+          setBulkImporting(false);
+          return;
+        }
+      }
+      handleBulkCancel();
+      await load();
+    } catch {
+      setError("Failed to import playbooks.");
+    } finally {
+      setBulkImporting(false);
+    }
+  }
+
   const selectClass =
     "w-full border border-neutral-800 rounded-sm px-3 py-2 bg-neutral-900 text-neutral-100 text-sm focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 outline-none";
 
@@ -189,6 +240,87 @@ export default function PlaybooksPage() {
           <p className="text-sm text-rose-300">{error}</p>
         </Card>
       )}
+
+      <Section
+        title="Bulk import playbooks"
+        description="Paste notes with headings (# Title). Each heading becomes a playbook title; content under it becomes the playbook content."
+      >
+        <Card padding="md" className="max-w-xl">
+          {previewItems === null ? (
+            <div className="space-y-4">
+              <Textarea
+                id="bulk-import"
+                label="Paste your notes"
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                placeholder={"# Opening hooks\nWhat's your biggest challenge?\n\n# Objection responses\nI hear you. Can I ask what you're comparing us to?"}
+                rows={8}
+                className="font-mono text-sm"
+              />
+              <Button
+                type="button"
+                onClick={handleBulkPreview}
+                disabled={!bulkText.trim()}
+              >
+                Preview
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-neutral-400">
+                {previewItems.length} playbook{previewItems.length !== 1 ? "s" : ""} to import. Choose a type for all.
+              </p>
+              <div className="space-y-1">
+                <label htmlFor="bulk-type" className="block text-sm font-medium text-neutral-200">
+                  Type for all
+                </label>
+                <select
+                  id="bulk-type"
+                  value={bulkType}
+                  onChange={(e) => setBulkType(e.target.value)}
+                  className={selectClass}
+                >
+                  {PLAYBOOK_TYPE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <ul className="space-y-2 max-h-60 overflow-y-auto">
+                {previewItems.map((item, i) => (
+                  <li key={i}>
+                    <Card padding="sm" className="border-neutral-800">
+                      <p className="font-medium text-neutral-100 text-sm">{item.title}</p>
+                      <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">
+                        {item.content.slice(0, 120)}
+                        {item.content.length > 120 ? "…" : ""}
+                      </p>
+                    </Card>
+                  </li>
+                ))}
+              </ul>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleBulkConfirm}
+                  disabled={bulkImporting}
+                  isLoading={bulkImporting}
+                >
+                  {bulkImporting ? "Importing…" : "Confirm import"}
+                </Button>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={handleBulkCancel}
+                  disabled={bulkImporting}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
+      </Section>
 
       <Section title="New playbook">
         <Card padding="md" className="max-w-xl">

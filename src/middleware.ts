@@ -7,5 +7,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/dashboard", "/dashboard/:path*", "/roleplay", "/roleplay/:path*", "/rate", "/playbooks", "/history", "/history/:path*", "/insights"],
+  matcher: ["/dashboard", "/dashboard/:path*", "/roleplay", "/roleplay/:path*", "/rate", "/playbooks", "/notes", "/ask", "/history", "/history/:path*", "/insights"],
 };

@@ -8,6 +8,8 @@ const navItems = [
   { href: "/roleplay", label: "Roleplay" },
   { href: "/rate", label: "Rate" },
   { href: "/playbooks", label: "Playbooks" },
+  { href: "/notes", label: "Notes" },
+  { href: "/ask", label: "Ask" },
   { href: "/history", label: "History" },
   { href: "/insights", label: "Insights" },
 ];

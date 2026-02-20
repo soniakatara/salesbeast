@@ -46,7 +46,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     authorized({ auth, request }) {
       const path = request.nextUrl.pathname;
-      const protectedPaths = ["/dashboard", "/roleplay", "/rate", "/playbooks", "/history", "/insights"];
+      const protectedPaths = ["/dashboard", "/roleplay", "/rate", "/playbooks", "/notes", "/ask", "/history", "/insights"];
       const isProtected = protectedPaths.some((p) => path === p || path.startsWith(p + "/"));
       if (isProtected) return !!auth;
       return true;
