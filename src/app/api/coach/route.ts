@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { getCoachReply } from "@/lib/coach";
 import { groupBulletsByType } from "@/lib/playbooks";
+import { getTopChunks } from "@/lib/notes";
 
 export async function POST(request: Request) {
   const { userId, res } = await requireAuth();
@@ -64,6 +65,14 @@ export async function POST(request: Request) {
     });
     const playbooksByType = groupBulletsByType(playbooks);
 
+    const query = [session.scenarioTitle ?? "", session.phase ?? "", content].filter(Boolean).join(" | ");
+    const notesChunks = await getTopChunks(query, userId!, 3);
+    const noteSources = notesChunks.map((c) => ({
+      sourceTitle: c.sourceTitle,
+      snippet: c.content.slice(0, 200) + (c.content.length > 200 ? "…" : ""),
+      score: c.score,
+    }));
+
     const recentMessages = session.messages.map((m) => ({ role: m.role, content: m.content }));
 
     const { output: out, usedFallback } = await getCoachReply({
@@ -73,6 +82,7 @@ export async function POST(request: Request) {
       playbooksByType,
       userMessage: content,
       recentMessages,
+      notesChunks,
     });
 
     const assistantMessage = await prisma.message.create({
@@ -102,6 +112,7 @@ export async function POST(request: Request) {
       oneThingToFix: out.oneThingToFix,
       drill: out.drill,
       phaseRationale: out.phaseRationale ?? undefined,
+      noteSources,
       ...(usedFallback && { usedFallback: true }),
     });
   } catch (e) {

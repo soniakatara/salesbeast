@@ -19,8 +19,9 @@ function buildCoachPrompt(context: {
   playbooksByType: Record<string, string[]>;
   recentMessages: { role: string; content: string }[];
   userMessage: string;
+  notesChunks?: { sourceTitle: string; content: string; score: number }[];
 }): string {
-  const { currentPhase, playbooksByType, recentMessages, userMessage } = context;
+  const { currentPhase, playbooksByType, recentMessages, userMessage, notesChunks = [] } = context;
   const phase = currentPhase ?? "opening";
   const bullets: string[] = [];
   for (const [type, arr] of Object.entries(playbooksByType)) {
@@ -28,12 +29,19 @@ function buildCoachPrompt(context: {
   }
   const playbookBlock = bullets.length ? `Playbook bullets (use where relevant):\n${bullets.join("\n")}` : "";
   const convo = recentMessages.slice(-6).map((m) => `${m.role}: ${m.content}`).join("\n");
+  const relevantNotes =
+    notesChunks.length > 0
+      ? notesChunks.map((c) => `[${c.sourceTitle}]\n${c.content}`).join("\n\n---\n\n")
+      : "";
+  const notesBlock = relevantNotes
+    ? `Relevant notes (user's gold knowledge—prioritize these over generic advice):\n${relevantNotes}`
+    : "";
 
   return `You are a sales coach. The user is doing a roleplay: they play the seller, you play the prospect.
 
 Current phase: ${phase}
 ${playbookBlock}
-
+${notesBlock ? `\n${notesBlock}\n` : ""}
 Recent conversation:
 ${convo || "(none yet)"}
 
@@ -55,6 +63,7 @@ export async function openaiCoachReply(context: {
   playbooksByType: Record<string, string[]>;
   recentMessages: { role: string; content: string }[];
   userMessage: string;
+  notesChunks?: { sourceTitle: string; content: string; score: number }[];
 }): Promise<CoachStructuredOutput | null> {
   const key = process.env.OPENAI_API_KEY;
   if (!key?.trim()) return null;

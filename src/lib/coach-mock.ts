@@ -57,6 +57,7 @@ export type MockCoachInput = {
   phasesJson: string | null;
   playbooksByType: PlaybooksByType;
   userMessage: string;
+  notesChunks?: { sourceTitle: string; content: string; score: number }[];
 };
 
 export type MockCoachOutput = {
@@ -108,6 +109,15 @@ const PHASE_RATIONALE: Record<string, string> = {
   close: "Closing; lock in a clear next step.",
 };
 
+function buildNotesSuffix(notesChunks: MockCoachInput["notesChunks"]): string {
+  if (!notesChunks?.length) return "";
+  const relevant = notesChunks.filter((c) => c.score > 0);
+  if (relevant.length === 0) return "";
+  const top = relevant[0];
+  const snippet = top.content.slice(0, 80).trim() + (top.content.length > 80 ? "…" : "");
+  return ` [From your notes: ${snippet}]`;
+}
+
 export function mockCoachReply(input: MockCoachInput): MockCoachOutput {
   const phases = parsePhases(input.phasesJson);
   const phase = input.currentPhase && phases.includes(input.currentPhase)
@@ -123,7 +133,8 @@ export function mockCoachReply(input: MockCoachInput): MockCoachOutput {
   const playbookSuffix = selectedBullets.length > 0
     ? ` [Your playbook: ${selectedBullets.join(" | ")}]`
     : "";
-  const assistantReply = prospectLine + playbookSuffix;
+  const notesSuffix = buildNotesSuffix(input.notesChunks);
+  const assistantReply = prospectLine + playbookSuffix + notesSuffix;
 
   const suggestedFromPlaybook = selectedBullets[0];
   const suggestedNextUserMessage =

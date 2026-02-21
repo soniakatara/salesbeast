@@ -17,6 +17,13 @@ export type CoachOutput = {
   phaseRationale: string | null;
 };
 
+export type NotesChunk = {
+  id: string;
+  sourceTitle: string;
+  content: string;
+  score: number;
+};
+
 export type CoachInput = {
   mode: "mock" | "openai";
   currentPhase: string | null;
@@ -24,6 +31,7 @@ export type CoachInput = {
   playbooksByType: PlaybooksByType;
   userMessage: string;
   recentMessages: { role: string; content: string }[];
+  notesChunks: NotesChunk[];
 };
 
 export async function getCoachReply(input: CoachInput): Promise<{
@@ -39,6 +47,7 @@ export async function getCoachReply(input: CoachInput): Promise<{
       playbooksByType: input.playbooksByType,
       recentMessages: input.recentMessages,
       userMessage: input.userMessage,
+      notesChunks: input.notesChunks,
     });
     if (openaiResult) {
       return {
@@ -58,6 +67,7 @@ export async function getCoachReply(input: CoachInput): Promise<{
       phasesJson: input.phasesJson,
       playbooksByType: input.playbooksByType,
       userMessage: input.userMessage,
+      notesChunks: input.notesChunks,
     });
     return {
       output: {
@@ -77,6 +87,7 @@ export async function getCoachReply(input: CoachInput): Promise<{
     phasesJson: input.phasesJson,
     playbooksByType: input.playbooksByType,
     userMessage: input.userMessage,
+    notesChunks: input.notesChunks,
   });
   return {
     output: {

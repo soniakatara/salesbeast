@@ -27,19 +27,22 @@ export async function POST(request: Request) {
       );
     }
 
-    await prisma.noteChunk.createMany({
-      data: chunks.map((content) => ({
-        userId: userId!,
-        sourceTitle,
-        content,
-      })),
-    });
+    for (const content of chunks) {
+      await prisma.noteChunk.create({
+        data: {
+          userId: userId!,
+          sourceTitle,
+          content,
+        },
+      });
+    }
 
     return NextResponse.json({ count: chunks.length });
   } catch (e) {
     console.error("Notes ingest error:", e);
+    const message = e instanceof Error ? e.message : "Failed to ingest notes";
     return NextResponse.json(
-      { error: "Failed to ingest notes" },
+      { error: message },
       { status: 500 }
     );
   }
